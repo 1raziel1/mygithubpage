@@ -1,0 +1,462 @@
+<!DOCTYPE html><html>
+<!--Programa creado por Benjamin Rus -->
+<head>
+   <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="iso-8859-1">
+  <title>Geo. Distpublic</title>
+    <link rel="shortcut icon" type="image/x-icon" href="http://www.distpublic.com/images/logo/favicon.ico" /><style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+		  background-color: #848484;
+}
+#map {
+     border: outset ;
+     margin: auto;
+    height: 99%;
+     width: 99%;
+    }
+    .button {
+    border: none;
+     color: white;
+     padding: 8px 8px;
+     text-align: center;
+     display: inline-block;
+    cursor: pointer;
+     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+     margin-bottom: 3px;
+     margin-top: 3px;
+   }
+   .campo {
+   }
+   #buttonRed{
+     margin-left: 11px;
+     background-color: #FF0000;
+    border: inset;
+   }
+   #buttonBlue{
+     background-color: #3333FF;
+   }
+   #buttonGreen{
+     background-color: #66FF66;
+   }
+   #Button{
+     margin-left: 11px;
+     background-color: #F6C657;
+   }
+   #caja{
+     margin: auto;
+     }
+   .controls {
+       margin-top: 10px;
+       border: 1px solid transparent;
+       border-radius: 2px 0 0 2px;
+       box-sizing: border-box;
+       -moz-box-sizing: border-box;
+       height: 32px;
+       outline: none;
+       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+     #pac-input {
+       background-color: #fff;
+       font-family: Roboto;
+       font-size: 15px;
+       font-weight: 300;
+       margin-left: 12px;
+       padding: 0 11px 0 13px;
+       text-overflow: ellipsis;
+       width: 300px;
+     }
+     #pac-input:focus {
+       border-color: #4d90fe;
+     }
+     .pac-container {
+       font-family: Roboto;
+     }
+     #type-selector {
+       color: #fff;
+       background-color: #4d90fe;
+       padding: 5px 11px 0px 11px;
+    }
+     #type-selector label {
+       font-family: Roboto;
+       font-size: 13px;
+       font-weight: 300;
+     }
+     #target {
+       width: 345px;
+     }
+  </style>
+  <div id="caja" align="left">
+     <input id="pac-input" class="controls" type="text" placeholder="Buscar..."></input></br>
+     <button class="button" id="Button">Guardar mapa</button>
+     <input class="controls" type="text" name="name"></input></br>
+     <button class="button" id="buttonRed"></button>
+     <button class="button" id="buttonGreen"></button>
+     <button class="button" id="buttonBlue"></button>
+  </div>
+  <div id="map"></div>
+ <script>
+     function f(){
+        var href=window.location.href;
+         href=href.substr(href.lastIndexOf('/') + 1).split('.')[0];
+         document.getElementsByName("name")[0].value=href;
+     }f();
+ </script>
+   </head>
+   <body>
+       <script>
+function initAutocomplete(map) {
+      var herramientas= document.getElementById('caja');
+       var input = document.getElementById('pac-input');
+       var searchBox = new google.maps.places.SearchBox(input);
+      map.controls[google.maps.ControlPosition.TOP_LEFT].push(herramientas);
+       map.addListener('bounds_changed', function() {
+         searchBox.setBounds(map.getBounds());
+       });
+       var markers = [];
+       searchBox.addListener('places_changed', function() {
+         var places = searchBox.getPlaces();
+         if (places.length == 0) {
+          return;
+         }
+         markers.forEach(function(marker) {
+          });
+        markers = [];
+         var bounds = new google.maps.LatLngBounds();
+         places.forEach(function(place) {
+          var icon = {
+             url: place.icon,
+             size: new google.maps.Size(71, 71),
+             origin: new google.maps.Point(0, 0),
+             anchor: new google.maps.Point(17, 34),
+             scaledSize: new google.maps.Size(25, 25)
+          };
+           markers.push(new google.maps.Marker({
+             map: map,
+             icon: icon,
+             title: place.name,
+             position: place.geometry.location
+           }));
+          if (place.geometry.viewport) {
+             bounds.union(place.geometry.viewport);
+           } else {
+             bounds.extend(place.geometry.location);
+           }
+         });
+         map.fitBounds(bounds);
+       });
+    }
+       //poligonos
+		  var nuevaDireccion='Default';
+		  var nuevaCoordenada='(0.0,0.0)';
+	      var nuevosPuntos="";
+	      var ids=0;
+     	function initMap() {
+			var color='#FF0000';         var polygons = [];
+         var map = new google.maps.Map(document.getElementById('map'), {
+         zoom: 10,   center: {lat: 39.4962653, lng: -0.3466063}
+      });
+       setMarkers(map);
+ //poligonos
+initAutocomplete(map);
+ var drawingManager = new google.maps.drawing.DrawingManager({
+ drawingMode: google.maps.drawing.OverlayType.POLYGON,
+drawingControl: true,
+drawingControlOptions: {
+ position: google.maps.ControlPosition.TOP_CENTER,
+drawingModes: [
+    google.maps.drawing.OverlayType.POLYGON,
+    google.maps.drawing.OverlayType.MARKER
+  ]
+},
+polygonOptions: {
+  strokeColor: color,
+  strokeOpacity:0.8,
+  strokeWeight: 5,
+  clickable: false,
+  editable: true,
+  zIndex: 1,
+},
+markerOptions: {
+  icon:'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png'
+}
+});
+drawingManager.setMap(map);
+var polygonOptions = drawingManager.get('polygonOptions');
+polygonOptions.fillColor = color;
+drawingManager.set('polygonOptions', polygonOptions);
+drawingManager.setMap(map);
+var colors=[];
+var geocoder = new google.maps.Geocoder;
+//info window
+var infowindow = new google.maps.InfoWindow();
+//escuchador
+google.maps.event.addListener(drawingManager, 'markercomplete', function (marker){
+  var punto= marker.getPosition();
+  console.log('escuchado'+punto.toString());	
+  geocodeLatLng(geocoder, map, infowindow, punto.toString().replace("(","").replace(")",""),marker);
+});
+google.maps.event.addListener(drawingManager, 'polygoncomplete', function (polygon) {
+var coordinates = (polygon.getPath().getArray());
+polygons.push(coordinates);
+var p = (polygon.getPath());
+colors.push(color);
+});
+document.getElementById('Button').addEventListener('click', function(){
+if(polygons.length==0 && nuevosPuntos==""){
+  alert('No has dibujado ningun poligono.');
+}else{
+document.getElementById('Button').innerHTML = 'Guardado.';
+var poligonos ='';
+for(var i=0;i<polygons.length;i++){
+ var coordenada='';
+var coor = polygons[i].toString().split('),(');
+for(var x =0;x<coor.length;x++){
+ if(coor.length==1){
+  coordenada+='[new google.maps.LatLng'+coor[x]+']';
+}else{
+ if(x==0){
+  coordenada+='[new google.maps.LatLng'+coor[x];
+}else if(x==coor.length-1){
+  coordenada+='),new google.maps.LatLng('+coor[x]+']';
+}else{
+ coordenada+='),new google.maps.LatLng('+coor[x];
+}
+}
+}
+var poligono =' new google.maps.Polygon({\n'+
+       'paths: '+coordenada+',\n'+
+      'strokeColor: \''+colors[i]+'\',\n'+
+       'strokeOpacity: 0.8,\n'+
+       ' strokeWeight: 3,\n'+
+       'fillColor: \''+colors[i]+'\',\n'+
+       'fillOpacity: 0.35\n'+
+       '}).setMap(map);\n';
+poligonos+=poligono;
+}
+var generador=document.getElementsByTagName('html')[0].innerHTML;
+var partesgeneradas=generador.split('//poligonos');
+var partesPuntosNuevos=partesgeneradas[4].split("//nuevosPuntos");
+var htmlFinal='<!DOCTYPE html>'+
+'<html>\n'+
+'<!--Mapa generado por Gestor-GeoDist programa creado por Benjamin Rus --><head>\n'+
+'<meta name="viewport" content="initial-scale=1.0, user-scalable=no">\n'+
+'<meta charset="utf-8">\n'+
+'<title>Geo. Distpublic</title>\n'+
+'<link rel="shortcut icon" type="image/x-icon" href="http://www.distpublic.com/images/logo/favicon.ico" /><style>\n'+
+'   html, body {\n'+
+'     height: 100%;\n'+
+'     margin: 0;\n'+
+'     padding: 0;\n'+
+'  }\n'+
+'  #map {\n'+
+'     height: 100%;\n'+
+'  }\n'+
+'</style>\n'+
+'</head>\n'+
+'<body>\n'+
+'  <div id="map"></div>\n'+
+'    <script>\n'+
+partesgeneradas[1]+
+poligonos+
+partesPuntosNuevos[0]+
+nuevosPuntos+
+partesPuntosNuevos[1]+
+'<\/script>'+
+'<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCA-vDzNO2zCw2ufGX4ozX6Uo6eN_n26FQ&signed_in=true&callback=initMap&libraries=drawing">'+
+'<\/script></body></html>';
+var nombre = document.getElementsByName('name')[0].value;
+if(nombre==''){
+  nombre='mapa';
+}
+var hiddenElement = document.createElement('a');
+ document.body.appendChild(hiddenElement);hiddenElement.href = 'data:application/plain;charset=utf-8,' + encodeURI(htmlFinal);
+hiddenElement.download = nombre+'.html';
+hiddenElement.target='_self' ;hiddenElement.click();
+}
+ });
+document.getElementById('buttonRed').addEventListener('click', function(){
+  color='#FF0000';
+  polygonOptions.fillColor = color;
+  polygonOptions.strokeColor= color;
+  drawingManager.set('polygonOptions', polygonOptions);
+  document.getElementById('buttonRed').style.border="inset";
+  document.getElementById('buttonGreen').style.border="none";
+  document.getElementById('buttonBlue').style.border="none";
+});
+document.getElementById('buttonGreen').addEventListener('click', function(){
+  color='#66FF66';
+  polygonOptions.fillColor = color;
+  polygonOptions.strokeColor= color;
+  drawingManager.set('polygonOptions', polygonOptions);
+  document.getElementById('buttonRed').style.border="none";
+ document.getElementById('buttonGreen').style.border="inset";
+  document.getElementById('buttonBlue').style.border="none";
+});
+document.getElementById('buttonBlue').addEventListener('click', function(){
+  color='#3333FF';
+  polygonOptions.fillColor = color;
+  polygonOptions.strokeColor= color;
+ drawingManager.set('polygonOptions', polygonOptions);
+  document.getElementById('buttonRed').style.border="none";
+  document.getElementById('buttonGreen').style.border="none";
+  document.getElementById('buttonBlue').style.border="inset";
+});
+     //poligonos
+}var registro = [
+['Calle de Masquefa,46020,Valencia,España,España',39.4923463,-0.35827608,0,
+'<h3 id="firstHeading" class="firstHeading">Calle de Masquefa,  62</br>46020 Valencia</h3>'+
+'<div id="bodyContent">'+
+'<b>Local: </b> Hello world</br>'+
+'</br><img src="https://benjiblo.files.wordpress.com/2016/03/hello-world.png"  height="100" width="150"/>'+
+'</br><a href="https://benjiblo.files.wordpress.com/2016/03/hello-world.png" target="_blank">Imagen</a>'+
+
+'</div>'+
+'</div>'],
+//nuevosPuntos
+];function setMarkers(map) {
+var latTotal = 0;
+var lngTotal = 0;
+var infowindow = new google.maps.InfoWindow();
+var marker, i;
+for (var i = 0; i < registro.length; i++) {
+var reg = registro[i];
+latTotal+=reg[1];
+lngTotal+=reg[2];
+marker = new google.maps.Marker({
+position: {lat: reg[1], lng: reg[2]},
+map: map,title: reg[0],   
+});
+google.maps.event.addListener(marker,'click', (function(marker,i) {
+return function(evt) {
+infowindow.setContent(registro[i][4]);
+infowindow.open(map, marker);
+}
+})(marker, i));
+}
+latTotal/=registro.length;
+lngTotal/=registro.length;
+var bounds = new google.maps.LatLngBounds();
+bounds.extend(new google.maps.Marker({
+  position: {lat: latTotal, lng: lngTotal},
+}).position);
+map.fitBounds(bounds);
+var listener = google.maps.event.addListener(map, "idle", function () {
+ map.setZoom(9);
+google.maps.event.removeListener(listener);
+});
+}
+//nuevosPuntos
+ var infow;
+ function geocodeLatLng(geocoder, map, infowindow, input ,marker) {
+ infow=infowindow;
+   var latlngStr = input.split(',', 2);
+   var latlng = {lat: parseFloat(latlngStr[0]), lng: parseFloat(latlngStr[1])};
+   geocoder.geocode({'location': latlng}, function(results, status) {
+     if (status === google.maps.GeocoderStatus.OK) {
+       if (results[2]) {
+         nuevaDireccion=results[0].formatted_address;
+         nuevaCoordenada=input;
+         infowindow.setContent(results[0].formatted_address+
+           '<div id="campos">'+
+           '<div></br>Depositado :</br><input class="campo" type="text" name="Depositado"><button id="depo" onclick="random(this.id)">+</button></div>'+
+           '<div></br>N Viviendas :</br><input class="campo" type="text" name="nViviendas"><button id="numeroF" onclick="random(this.id)">+</button></div>'+
+           '<div></br>N Folletos :</br><input class="campo" type="text" name="nFolletos"></div>'+
+           '<div></br>Fecha :</br><input class="campo" type="text" name="Fecha"><button onclick="getDate()">+</button></div>'+
+           '<div></br>Hora :</br><input class="campo" type="text" name="Hora"><button onclick="getTime()">+</button></div>'+
+           '<div></br>URL_IMG :</br><input class="campo" type="text" name="url"></div>'+
+           '<div></br>URL_IMG2 :</br><input class="campo" type="text" name="url2"></div>'+
+           '</br> <button id="guardar" onclick="guardarReg()">Guardar</button>'+
+           '</div>');
+         infowindow.open(map, marker);
+         getDate();
+         getTime();
+       } else {
+         window.alert('No results found');
+       }
+     } else {
+       window.alert('Geocoder failed due to: ' + status);
+     }
+   });
+}
+function random(campo){
+   if(campo == "depo"){
+      var aleatorio = Math.round(Math.random()*2+1);
+      var valor='hola';
+     switch (aleatorio){
+       case 1:
+         valor='Buzón';
+       break;
+       case 2:
+         valor='Cesta';
+       break;
+       case 3:
+         valor='Enganchado';
+       break;
+     }
+     document.getElementsByName("Depositado")[0].value= valor;
+   }else if(campo == "numeroF"){
+      var aleatorio = Math.round(Math.random()+1);
+       document.getElementsByName("nFolletos")[0].value= aleatorio*10;
+        document.getElementsByName("nViviendas")[0].value= aleatorio*10;
+   }
+ }
+function getDate(){
+   var today = new Date();
+   var dd = today.getDate();
+   var mm = today.getMonth()+1; //January is 0!
+   var yyyy = today.getFullYear();
+   today = dd+'.'+mm+'.'+yyyy;
+   document.getElementsByName("Fecha")[0].value=today;
+ }
+ function getTime(){
+   var hora= new Date();
+   var hh= hora.getHours();
+   var mm=hora.getMinutes();
+   var ss=hora.getSeconds();
+   hora=hh+"."+mm+"."+ss;
+   document.getElementsByName("Hora")[0].value= hora;
+ } 
+ function guardarReg(){
+  var nuevoReg=[];
+  nuevoReg.push(nuevaDireccion.replace("'",""));
+  nuevoReg.push(nuevaCoordenada);
+  nuevoReg.push(document.getElementsByName("Depositado")[0].value);
+  nuevoReg.push(document.getElementsByName("nViviendas")[0].value);
+  nuevoReg.push(document.getElementsByName("nFolletos")[0].value);
+  nuevoReg.push(document.getElementsByName("Fecha")[0].value);
+  nuevoReg.push(document.getElementsByName("Hora")[0].value);
+  nuevoReg.push(document.getElementsByName("url")[0].value);
+  nuevoReg.push(document.getElementsByName("url2")[0].value);
+  var dir=nuevoReg[0].split(",");
+  var img="";
+  var img2="";
+  if(nuevoReg[7]!=""){
+   img=   "'<img src=\""+nuevoReg[7]+"\"  height=\"100\" width=\"150\"/>'+\n"+
+                       "'</br><a href=\""+nuevoReg[7]+"\" target=\"_blank\">Imagen</a>'\n+";
+  }
+  if(nuevoReg[8]!=""){
+   img2=   "'<img src=\""+nuevoReg[8]+"\"  height=\"100\" width=\"150\"/>'+\n"+
+                       "'</br><a href=\""+nuevoReg[8]+"\" target=\"_blank\">Imagen</a>'\n+";
+  }
+  nuevosPuntos+="['"+nuevoReg[0]+"'"+","+nuevoReg[1]+","+ids+",\n"+
+                     "'<h3 id=\"firstHeading\" class=\"firstHeading\">"+dir[0]+" "+dir[1]+"</br>"+dir[2]+"</h3>'+\n"+
+                       "'<div id=\"bodyContent\">'+\n"+
+                       "'<b>Depositado: </b>"+nuevoReg[2]+"</br>'+\n"+
+                       "'<b>No. Viviendas: </b>"+nuevoReg[3]+"</br>'+\n"+
+                       "'<b>No. Folletos: </b>"+nuevoReg[4]+"</br>'+\n"+
+                       "'<b>Fecha: </b>"+nuevoReg[5]+"</br>'+\n"+
+                       "'<b>Hora: </b>"+nuevoReg[6]+"</br>'+\n"+
+                       img+
+                       img2+
+                       "'</div>'+\n"+
+                       "'</div>'],";
+  infow.close();
+ }
+//nuevosPuntos</script>
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCA-vDzNO2zCw2ufGX4ozX6Uo6eN_n26FQ&signed_in=true&callback=initMap&libraries=drawing,places">//poligonos</script>
+</body>
+</html>
